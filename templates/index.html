@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="card">
+  <h2>Индексация</h2>
+  <form action="/ui/ingest" method="post" class="grid show-loader" enctype="multipart/form-data">
+    <div>
+      <label>Embedding backend</label>
+      <select name="embedding_backend">
+        <option value="local" {{ "selected" if settings.embedding_backend=="local" else "" }}>local (оффлайн)</option>
+        <option value="openai" {{ "selected" if settings.embedding_backend=="openai" else "" }}>openai</option>
+      </select>
+    </div>
+    <div>
+      <label>OPENAI_API_KEY</label>
+      <input name="openai_api_key" type="password" placeholder="sk-..." value="{{ settings.openai_api_key or '' }}">
+    </div>
+    <div>
+      <label>OPENAI_CHAT_MODEL</label>
+      <input name="openai_chat_model" value="{{ settings.openai_chat_model }}">
+    </div>
+    <div>
+      <label>OPENAI_EMBEDDING_MODEL</label>
+      <input name="openai_embedding_model" value="{{ settings.openai_embedding_model }}">
+    </div>
+
+    <div class="full">
+      <label>Загрузить links.txt (по одной ссылке в строке; строки с # игнорируются)</label>
+      <input type="file" name="links_file" accept=".txt">
+      <small class="muted">Если файл не выбран — можно указать ссылки ниже или использовать SEED_LINKS_FILE / seed по умолчанию.</small>
+    </div>
+
+    <div class="full">
+      <label>Кастомные URL (по одному в строке; перекрывает seed, если файл не загружен)</label>
+      <textarea name="custom_urls" rows="4" placeholder="https://eora.ru/cases/..."></textarea>
+    </div>
+
+    <div class="actions">
+      <button type="submit">Индексировать</button>
+      <span class="hint">
+        seed: {{ settings.seed_links|length }} ссылок{% if settings.seed_links_file %} • SEED_LINKS_FILE={{ settings.seed_links_file }}{% endif %}
+      </span>
+    </div>
+  </form>
+  {% if message %}
+    <p class="note">{{ message }}</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>Задать вопрос</h2>
+  <form action="/ui/ask" method="post" class="grid show-loader" id="ask-form">
+    <div class="full">
+      <label>Вопрос</label>
+      <textarea name="question" required rows="3">{{ last_question or "Что вы можете сделать для ритейлеров?" }}</textarea>
+    </div>
+    <div>
+      <label>Режим</label>
+      <select name="mode">
+        <option value="simple" {{ "selected" if last_mode=="simple" else "" }}>Лёгкий (ответ)</option>
+        <option value="sources" {{ "selected" if last_mode=="sources" else "" }}>Средний (ответ + "Источники: [1], [2]")</option>
+        <option value="inline" {{ "selected" if (last_mode or "inline")=="inline" else "" }}>Сложный (inline [1])</option>
+        <option value="extractive" {{ "selected" if last_mode=="extractive" else "" }}>Оффлайн-конспект</option>
+      </select>
+    </div>
+    <div>
+      <label>top_k</label>
+      <input name="top_k" type="number" min="1" max="12" value="{{ last_top_k or settings.top_k }}">
+    </div>
+
+    <div>
+      <label>Embedding backend</label>
+      <select name="embedding_backend">
+        <option value="local" {{ "selected" if settings.embedding_backend=="local" else "" }}>local</option>
+        <option value="openai" {{ "selected" if settings.embedding_backend=="openai" else "" }}>openai</option>
+      </select>
+    </div>
+    <div>
+      <label>OPENAI_API_KEY</label>
+      <input name="openai_api_key" type="password" placeholder="sk-..." value="{{ settings.openai_api_key or '' }}">
+    </div>
+    <div>
+      <label>OPENAI_CHAT_MODEL</label>
+      <input name="openai_chat_model" value="{{ settings.openai_chat_model }}">
+    </div>
+    <div>
+      <label>OPENAI_EMBEDDING_MODEL</label>
+      <input name="openai_embedding_model" value="{{ settings.openai_embedding_model }}">
+    </div>
+
+    <div class="actions">
+      <button type="submit">Ответить</button>
+      <button type="button" id="copy-btn">Скопировать</button>
+    </div>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Ответ</h2>
+  {% if answer_html %}
+    <div class="answer md" id="answer_html">{{ answer_html | safe }}</div>
+    <pre class="answer" id="answer" style="display:none">{{ answer }}</pre>
+    <form action="/ui/export" method="post" class="inline-form">
+      <input type="hidden" name="answer_md" id="answer_md_input" value="{{ answer|e }}">
+      <input type="text" name="filename" value="answer.md" class="filename">
+      <button type="submit">Скачать .md</button>
+    </form>
+  {% else %}
+    <p class="muted">Здесь появится ответ.</p>
+  {% endif %}
+
+  {% if sources and sources|length > 0 and (last_mode or 'inline') != 'inline' %}
+    <h3>Источники</h3>
+    <ol>
+      {% for u in sources %}
+        <li><a href="{{ u }}" target="_blank" rel="noopener">{{ u }}</a></li>
+      {% endfor %}
+    </ol>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>Документы в индексе</h2>
+  {% if docs and docs|length > 0 %}
+    <ul class="docs">
+      {% for (id,url,title) in docs %}
+        <li>#{{ id }} — <a href="{{ url }}" target="_blank" rel="noopener">{{ title or url }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Пока пусто. Нажмите «Индексировать».</p>
+  {% endif %}
+</section>
+
+{% endblock %}

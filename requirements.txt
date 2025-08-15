@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+httpx
+beautifulsoup4
+pydantic
+pydantic-settings
+numpy
+openai
+python-dotenv
+sentence-transformers
+torch
+Jinja2
+python-multipart
+Markdown

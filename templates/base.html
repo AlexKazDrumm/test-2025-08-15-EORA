@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>EORA RAG Assistant</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <script defer src="/static/app.js"></script>
+</head>
+<body>
+  <div id="loader" class="loader hidden">
+    <div class="spinner"></div>
+    <div class="loader-text">Генерация ответа…</div>
+  </div>
+
+  <header class="header">
+    <h1>EORA RAG Assistant</h1>
+    <nav>
+      <a href="/ui/">UI</a>
+      <a href="/docs" target="_blank">API: /docs list</a>
+      <a href="/health" target="_blank">/health</a>
+    </nav>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer">
+    <small>Тестовый интерфейс</small>
+  </footer>
+</body>
+</html>
