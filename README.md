@@ -19,7 +19,7 @@ cp .env.example .env
 
 ## Запуск
 uvicorn app.main:app --reload
-# откройте http://localhost:8000/ui/
+откройте http://localhost:8000/ui/
 
 ## Режимы
 - Offline: EMBEDDING_BACKEND=local; генерация — extractive (без OpenAI).
